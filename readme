@@ -1,0 +1,7 @@
+docker pull docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+docker run -d --name es -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+docker pull docker.elastic.co/kibana/kibana:6.5.4
+docker run --link es:elasticsearch -d --name kibana -p 5601:5601 docker.elastic.co/kibana/kibana:6.5.4
+
+docker exec -it es /bin/bash
+./bin/elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v6.5.4/elasticsearch-analysis-ik-6.5.4.zip

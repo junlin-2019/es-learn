@@ -1,0 +1,5 @@
+server:
+  port: 8088
+elasticsearch:
+  rest:
+    uri: 127.0.0.1:9200

@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 public class EsServiceImpl implements IEsService {
 
     private static final String ES_DEFAULT_TYPE = "_doc";
-    private static final int INSERTDOC_BATCHSIZE = 2000;
+    private static final int INSERTDOC_BATCHSIZE = 20;
 
     @Autowired
     private RestHighLevelClient client;

@@ -1,10 +1,12 @@
 package com.example.service.document;
 
 import com.example.constants.BlogConstant;
+import com.example.constants.ProjectConstant;
 import com.example.enums.SyncDataStatusEnum;
 import com.example.exception.IndexDataRuntimeException;
 import com.example.service.es.IEsService;
 import com.example.service.index.BlogIndexService;
+import com.example.service.index.ProjectIndexService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,14 +19,13 @@ import java.util.List;
 /**
  * @Description:
  * @Author: admin
- * @Date: 2020/10/16 13:17
+ * @Date: 2020/10/19 14:30
  */
 @Service
 @Slf4j
-public class BlogDocumentServiceImpl implements BlogDocumentService{
-
-    private static final String INDEX_PREFIX = "hh_blog.";
-    private static final String MAPPING = "{\"dynamic\":\"false\",\"properties\":{\"blogName\":{\"type\":\"text\",\"analyzer\":\"ik_max_word\"},\"author\":{\"type\":\"text\",\"analyzer\":\"ik_max_word\"},\"content\":{\"type\":\"text\",\"analyzer\":\"ik_max_word\"}}}";
+public class ProjectDocumentServiceImpl implements ProjectDocumentService{
+    private static final String INDEX_PREFIX = "hh_project.";
+    private static final String MAPPING = "{\"dynamic\":\"false\",\"properties\":{\"id\":{\"type\":\"keyword\"},\"name\":{\"type\":\"text\",\"analyzer\":\"ik_max_word\"},\"openStatus\":{\"type\":\"keyword\"},\"address\":{\"type\":\"keyword\"},\"cityId\":{\"type\":\"keyword\"},\"area\":{\"type\":\"float\"},\"typeList\":{\"properties\":{\"id\":{\"type\":\"integer\"},\"name\":{\"type\":\"keyword\"}}},\"developerId\":{\"type\":\"keyword\"},\"price\":{\"type\":\"double\"},\"lat\":{\"type\":\"float\"},\"lng\":{\"type\":\"float\"},\"location\":{\"type\":\"geo_point\"},\"desc\":{\"type\":\"text\",\"analyzer\":\"ik_max_word\"},\"detailList\":{\"properties\":{\"id\":{\"type\":\"integer\"},\"brand\":{\"type\":\"keyword\"},\"level\":{\"type\":\"integer\"}}}}}";
     private static final String INDEX_PATTERN = "yyyyMMddHHmmss";
 
 
@@ -32,18 +33,20 @@ public class BlogDocumentServiceImpl implements BlogDocumentService{
     private IEsService esService;
 
     @Autowired
-    private BlogIndexService indexService;
+    private ProjectIndexService indexService;
     @Override
     public boolean bulidIndexAndInit() {
         //1.生成新索引名称
         String newIndex = INDEX_PREFIX + LocalDateTime.now().format(DateTimeFormatter.ofPattern(INDEX_PATTERN));
         //2.获取历史索引
-        List<String> alias = esService.getAlias(BlogConstant.ALIAS);
+        List<String> alias = esService.getAlias(ProjectConstant.ALIAS);
         //3.创建新索引并设置别名
-        boolean created = esService.createIndex(newIndex, BlogConstant.ALIAS, MAPPING);
+        boolean created = esService.createIndex(newIndex, ProjectConstant.ALIAS, MAPPING);
+        log.info("索引是否创建:{},索引名称:{}",created,newIndex);
         //4.全量同步数据库对应数据
         if (created) {
             SyncDataStatusEnum syncDataStatusEnum = indexService.syncFromDataBase(newIndex);
+            log.info("同步数据完毕,状态:{}",syncDataStatusEnum);
             //5.同步数据成功则删除所有历史索引
             if (SyncDataStatusEnum.success.equals(syncDataStatusEnum)) {
                 boolean result = true;
@@ -54,7 +57,7 @@ public class BlogDocumentServiceImpl implements BlogDocumentService{
                 }
                 return result;
             } else if (SyncDataStatusEnum.part_success.equals(syncDataStatusEnum)) {
-                esService.addAlias(newIndex, BlogConstant.ALIAS);
+                esService.addAlias(newIndex, ProjectConstant.ALIAS);
                 throw new IndexDataRuntimeException("部分数据未同步成功");
             } else {
                 esService.deleteIndex(newIndex);

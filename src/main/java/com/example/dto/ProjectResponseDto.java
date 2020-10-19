@@ -10,12 +10,12 @@ import java.util.List;
  * @Date: 2020/10/16 17:49
  */
 @Data
-public class DemoDto {
+public class ProjectResponseDto {
 
     private Integer number;
 
-    List<DemoDetailDto> demoDetailDtos;
+    List<ProjectDto> projectDtos;
 
-    List<DemoComareaCountDto> demoComareaCountDtos;
+    List<CityMaxDto> cityMaxDtos;
 
 }
